@@ -350,7 +350,7 @@
                     <label for="pass">Contrasena</label>
                     <input type="password" id="pass" placeholder="Contrasena" autocomplete="off">
                 </div>
-                <button class="login-btn" onclick="login()">Ingresar</button>
+                <button class="login-btn" id="loginBtn">Ingresar</button>
                 <div class="login-error" id="loginError">Usuario o contrasena incorrectos.</div>
             </div>
         </div>
@@ -441,6 +441,11 @@
         }
 
         document.getElementById('pass').addEventListener('keypress', e => {
+            if (e.key === 'Enter') login();
+        });
+
+        document.getElementById('loginBtn').addEventListener('click', login);
+        document.getElementById('user').addEventListener('keypress', e => {
             if (e.key === 'Enter') login();
         });
 
