@@ -653,18 +653,36 @@
             statusEl.textContent = 'Enviando resultados...';
             statusEl.className = 'sending-status';
 
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify(data)
-            }).then(() => {
+            // Use hidden form + iframe to avoid CORS issues with Apps Script
+            let iframe = document.getElementById('hidden_iframe');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.name = 'hidden_iframe';
+                iframe.id = 'hidden_iframe';
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = SCRIPT_URL;
+            form.target = 'hidden_iframe';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'data';
+            input.value = JSON.stringify(data);
+            form.appendChild(input);
+
+            document.body.appendChild(form);
+            form.submit();
+            form.remove();
+
+            // Show success after a short delay (we can't read iframe response cross-origin)
+            setTimeout(() => {
                 statusEl.textContent = 'Resultados enviados correctamente.';
                 statusEl.className = 'sending-status success';
-            }).catch(() => {
-                statusEl.textContent = 'No se pudieron enviar los resultados.';
-                statusEl.className = 'sending-status error';
-            });
+            }, 2000);
         }
 
         function restart() {

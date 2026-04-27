@@ -41,7 +41,8 @@ function getOrCreateSheet() {
 
 function doPost(e) {
   try {
-    const data = JSON.parse(e.postData.contents);
+    // Support both form submission and raw JSON
+    const data = e.parameter.data ? JSON.parse(e.parameter.data) : JSON.parse(e.postData.contents);
     const sheet = getOrCreateSheet();
 
     sheet.appendRow([

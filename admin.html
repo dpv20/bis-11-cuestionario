@@ -499,28 +499,32 @@
 
             container.innerHTML = '<div class="loading">Cargando resultados...</div>';
 
-            // Use JSONP to avoid CORS issues
-            const callbackName = 'handleResults_' + Date.now();
-            window[callbackName] = function(data) {
+            fetch(SCRIPT_URL)
+            .then(r => r.json())
+            .then(data => {
                 resultsData = data || [];
                 renderTable(resultsData);
                 updateStats(resultsData);
-                delete window[callbackName];
-                const script = document.getElementById('jsonpScript');
-                if (script) script.remove();
-            };
-
-            const script = document.createElement('script');
-            script.id = 'jsonpScript';
-            script.src = `${SCRIPT_URL}?action=get&callback=${callbackName}`;
-            script.onerror = function() {
-                container.innerHTML = '<div class="no-data">Error al cargar datos. Verifica la URL del backend.</div>';
-                showStatus('Error de conexion con el backend.', 'error');
-                delete window[callbackName];
-                this.remove();
-            };
-            document.body.appendChild(script);
-        }
+            })
+            .catch(err => {
+                // Fallback: try JSONP if fetch fails due to CORS
+                const callbackName = 'handleResults_' + Date.now();
+                window[callbackName] = function(data) {
+                    resultsData = data || [];
+                    renderTable(resultsData);
+                    updateStats(resultsData);
+                    delete window[callbackName];
+                };
+                const script = document.createElement('script');
+                script.src = `${SCRIPT_URL}?callback=${callbackName}`;
+                script.onerror = function() {
+                    container.innerHTML = '<div class="no-data">Error al cargar datos. Verifica la URL del backend.</div>';
+                    showStatus('Error de conexion con el backend.', 'error');
+                    delete window[callbackName];
+                    this.remove();
+                };
+                document.body.appendChild(script);
+            });
 
         function updateStats(data) {
             document.getElementById('statTotal').textContent = data.length;
