@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIS-11 - Panel de Administracion</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+        /* Login */
+        #loginScreen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+
+        .login-card {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-card h1 {
+            font-size: 1.8rem;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .login-card h2 {
+            font-size: 1rem;
+            color: #a0a0d0;
+            font-weight: 400;
+            margin-bottom: 30px;
+        }
+
+        .login-field {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .login-field label {
+            display: block;
+            margin-bottom: 6px;
+            color: #a0a0d0;
+            font-size: 0.9rem;
+        }
+
+        .login-field input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .login-field input:focus { border-color: #667eea; }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.4);
+        }
+
+        .login-error {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 12px;
+            display: none;
+        }
+
+        /* Dashboard */
+        #dashboard { display: none; }
+
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .dash-header h1 { font-size: 1.6rem; color: #fff; }
+
+        .dash-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .dash-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-danger {
+            background: rgba(231,76,60,0.2);
+            color: #e74c3c;
+            border: 1px solid rgba(231,76,60,0.3);
+        }
+
+        .dash-btn:hover { transform: translateY(-1px); }
+
+        /* Stats */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label { color: #a0a0d0; font-size: 0.9rem; margin-top: 4px; }
+
+        /* QR Section */
+        .qr-section {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .qr-section h3 { color: #fff; margin-bottom: 16px; }
+
+        #qrCode {
+            display: inline-block;
+            background: #fff;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .qr-url {
+            font-size: 0.85rem;
+            color: #a0a0d0;
+            word-break: break-all;
+            margin-top: 8px;
+        }
+
+        .qr-url a { color: #667eea; text-decoration: none; }
+
+        /* Table */
+        .table-card {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 24px;
+            overflow-x: auto;
+        }
+
+        .table-card h3 { color: #fff; margin-bottom: 16px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.15);
+            color: #a0a0d0;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        tr:hover td { background: rgba(255,255,255,0.03); }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge-low { background: rgba(46,204,113,0.2); color: #2ecc71; }
+        .badge-normal { background: rgba(241,196,15,0.2); color: #f1c40f; }
+        .badge-high { background: rgba(231,76,60,0.2); color: #e74c3c; }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #a0a0d0;
+        }
+
+        .status-msg {
+            text-align: center;
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .status-error {
+            background: rgba(231,76,60,0.15);
+            color: #e74c3c;
+            border: 1px solid rgba(231,76,60,0.3);
+        }
+
+        .status-info {
+            background: rgba(102,126,234,0.15);
+            color: #a0a0d0;
+            border: 1px solid rgba(102,126,234,0.3);
+        }
+
+        /* Detail Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: #1a1a3e;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h3 { color: #fff; margin-bottom: 16px; }
+
+        .modal-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .modal-label { color: #a0a0d0; }
+        .modal-value { color: #fff; font-weight: 600; }
+
+        .modal-close {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            table { font-size: 0.8rem; }
+            th, td { padding: 8px 6px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login -->
+        <div id="loginScreen">
+            <div class="login-card">
+                <h1>Panel de Administracion</h1>
+                <h2>BIS-11 - Escala de Impulsividad</h2>
+                <div class="login-field">
+                    <label for="user">Usuario</label>
+                    <input type="text" id="user" placeholder="Usuario" autocomplete="off">
+                </div>
+                <div class="login-field">
+                    <label for="pass">Contrasena</label>
+                    <input type="password" id="pass" placeholder="Contrasena" autocomplete="off">
+                </div>
+                <button class="login-btn" onclick="login()">Ingresar</button>
+                <div class="login-error" id="loginError">Usuario o contrasena incorrectos.</div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard">
+            <div class="dash-header">
+                <h1>Resultados BIS-11</h1>
+                <div class="dash-actions">
+                    <button class="dash-btn btn-primary" onclick="loadResults()">Actualizar</button>
+                    <button class="dash-btn btn-secondary" onclick="exportCSV()">Exportar CSV</button>
+                    <button class="dash-btn btn-danger" onclick="logout()">Cerrar sesion</button>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Total evaluados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statAvg">0</div>
+                    <div class="stat-label">Promedio</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statHigh">0</div>
+                    <div class="stat-label">Impulsividad Alta</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statLow">0</div>
+                    <div class="stat-label">Impulsividad Baja</div>
+                </div>
+            </div>
+
+            <div class="qr-section">
+                <h3>Codigo QR del cuestionario</h3>
+                <div id="qrCode"></div>
+                <div class="qr-url">
+                    <a id="quizUrl" href="#" target="_blank"></a>
+                </div>
+                <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">
+                    Comparte este QR para que las personas puedan responder el cuestionario
+                </p>
+            </div>
+
+            <div id="statusMsg"></div>
+
+            <div class="table-card">
+                <h3>Listado de evaluaciones</h3>
+                <div id="tableContainer">
+                    <div class="loading">Cargando resultados...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" id="modalContent" onclick="event.stopPropagation()">
+            <h3 id="modalTitle">Detalle</h3>
+            <div id="modalBody"></div>
+            <button class="modal-close" onclick="closeModal()">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIGURACION =====
+        const SCRIPT_URL = '';
+        const ADMIN_USER = 'guaripolo';
+        const ADMIN_PASS = 'calcetin';
+        // =========================
+
+        let resultsData = [];
+
+        // Login
+        function login() {
+            const user = document.getElementById('user').value.trim();
+            const pass = document.getElementById('pass').value;
+
+            if (user === ADMIN_USER && pass === ADMIN_PASS) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                sessionStorage.setItem('bis11_auth', 'true');
+                initDashboard();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+
+        document.getElementById('pass').addEventListener('keypress', e => {
+            if (e.key === 'Enter') login();
+        });
+
+        function logout() {
+            sessionStorage.removeItem('bis11_auth');
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('user').value = '';
+            document.getElementById('pass').value = '';
+            document.getElementById('loginError').style.display = 'none';
+        }
+
+        // Check session
+        if (sessionStorage.getItem('bis11_auth') === 'true') {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            initDashboard();
+        }
+
+        function initDashboard() {
+            generateQR();
+            loadResults();
+        }
+
+        // QR Code
+        function generateQR() {
+            const baseUrl = window.location.href.replace(/\/admin\.html.*$/, '/index.html');
+            const qrContainer = document.getElementById('qrCode');
+            const qrUrl = document.getElementById('quizUrl');
+
+            qrUrl.textContent = baseUrl;
+            qrUrl.href = baseUrl;
+
+            // Use QR code API
+            const qrImg = document.createElement('img');
+            const apiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(baseUrl);
+            qrImg.src = apiUrl;
+            qrImg.alt = 'QR Code';
+            qrImg.width = 250;
+            qrImg.height = 250;
+            qrImg.style.borderRadius = '8px';
+            qrContainer.innerHTML = '';
+            qrContainer.appendChild(qrImg);
+        }
+
+        // Load results from Google Sheets via Apps Script
+        function loadResults() {
+            const container = document.getElementById('tableContainer');
+
+            if (!SCRIPT_URL) {
+                showStatus('Backend no configurado. Pega la URL del Google Apps Script en la variable SCRIPT_URL de admin.html e index.html.', 'info');
+                container.innerHTML = '<div class="no-data">Configura el backend para ver resultados.</div>';
+                updateStats([]);
+                return;
+            }
+
+            container.innerHTML = '<div class="loading">Cargando resultados...</div>';
+
+            // Use JSONP to avoid CORS issues
+            const callbackName = 'handleResults_' + Date.now();
+            window[callbackName] = function(data) {
+                resultsData = data || [];
+                renderTable(resultsData);
+                updateStats(resultsData);
+                delete window[callbackName];
+                const script = document.getElementById('jsonpScript');
+                if (script) script.remove();
+            };
+
+            const script = document.createElement('script');
+            script.id = 'jsonpScript';
+            script.src = `${SCRIPT_URL}?action=get&callback=${callbackName}`;
+            script.onerror = function() {
+                container.innerHTML = '<div class="no-data">Error al cargar datos. Verifica la URL del backend.</div>';
+                showStatus('Error de conexion con el backend.', 'error');
+                delete window[callbackName];
+                this.remove();
+            };
+            document.body.appendChild(script);
+        }
+
+        function updateStats(data) {
+            document.getElementById('statTotal').textContent = data.length;
+
+            if (data.length > 0) {
+                const totals = data.map(d => Number(d.total) || 0);
+                const avg = (totals.reduce((a, b) => a + b, 0) / totals.length).toFixed(1);
+                document.getElementById('statAvg').textContent = avg;
+                document.getElementById('statHigh').textContent = data.filter(d => Number(d.total) >= 72).length;
+                document.getElementById('statLow').textContent = data.filter(d => Number(d.total) <= 51).length;
+            } else {
+                document.getElementById('statAvg').textContent = '-';
+                document.getElementById('statHigh').textContent = '0';
+                document.getElementById('statLow').textContent = '0';
+            }
+        }
+
+        function renderTable(data) {
+            const container = document.getElementById('tableContainer');
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="no-data">No hay evaluaciones registradas aun.</div>';
+                return;
+            }
+
+            // Sort by date descending
+            data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+            let html = `<table>
+                <thead><tr>
+                    <th>Fecha</th>
+                    <th>Nombre</th>
+                    <th>RUT</th>
+                    <th>Total</th>
+                    <th>Nivel</th>
+                    <th>Atenc.</th>
+                    <th>Motor</th>
+                    <th>No Plan.</th>
+                </tr></thead><tbody>`;
+
+            data.forEach((row, idx) => {
+                const fecha = row.fecha ? new Date(row.fecha).toLocaleDateString('es-CL') : '-';
+                const total = Number(row.total) || 0;
+                let badgeClass = 'badge-normal';
+                if (total <= 51) badgeClass = 'badge-low';
+                else if (total >= 72) badgeClass = 'badge-high';
+
+                html += `<tr style="cursor:pointer" onclick="showDetail(${idx})">
+                    <td>${fecha}</td>
+                    <td>${row.nombre || '-'}</td>
+                    <td>${row.rut || '-'}</td>
+                    <td><strong>${total}</strong></td>
+                    <td><span class="badge ${badgeClass}">${row.nivel || '-'}</span></td>
+                    <td>${row.atencional || '-'}</td>
+                    <td>${row.motora || '-'}</td>
+                    <td>${row.noPlanificada || '-'}</td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function showDetail(idx) {
+            const row = resultsData[idx];
+            if (!row) return;
+
+            document.getElementById('modalTitle').textContent = row.nombre || row.rut || 'Evaluacion';
+
+            const total = Number(row.total) || 0;
+            let levelClass = 'badge-normal';
+            if (total <= 51) levelClass = 'badge-low';
+            else if (total >= 72) levelClass = 'badge-high';
+
+            let html = `
+                <div class="modal-row"><span class="modal-label">Fecha</span><span class="modal-value">${row.fecha ? new Date(row.fecha).toLocaleString('es-CL') : '-'}</span></div>
+                <div class="modal-row"><span class="modal-label">Nombre</span><span class="modal-value">${row.nombre || '-'}</span></div>
+                <div class="modal-row"><span class="modal-label">RUT</span><span class="modal-value">${row.rut || '-'}</span></div>
+                <div class="modal-row"><span class="modal-label">Puntuacion Total</span><span class="modal-value">${total} / 120</span></div>
+                <div class="modal-row"><span class="modal-label">Nivel</span><span class="modal-value"><span class="badge ${levelClass}">${row.nivel || '-'}</span></span></div>
+                <div class="modal-row"><span class="modal-label">Impulsividad Atencional</span><span class="modal-value">${row.atencional || '-'} / 32</span></div>
+                <div class="modal-row"><span class="modal-label">Impulsividad Motora</span><span class="modal-value">${row.motora || '-'} / 44</span></div>
+                <div class="modal-row"><span class="modal-label">Impulsividad No Planificada</span><span class="modal-value">${row.noPlanificada || '-'} / 44</span></div>
+            `;
+
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function closeModal(event) {
+            if (!event || event.target === document.getElementById('modalOverlay')) {
+                document.getElementById('modalOverlay').classList.remove('active');
+            }
+        }
+
+        function showStatus(msg, type) {
+            const el = document.getElementById('statusMsg');
+            el.innerHTML = `<div class="status-msg status-${type}">${msg}</div>`;
+        }
+
+        // Export CSV
+        function exportCSV() {
+            if (!resultsData || resultsData.length === 0) {
+                alert('No hay datos para exportar.');
+                return;
+            }
+
+            const headers = ['Fecha', 'Nombre', 'RUT', 'Total', 'Nivel', 'Atencional', 'Motora', 'No Planificada'];
+            const rows = resultsData.map(r => [
+                r.fecha ? new Date(r.fecha).toLocaleString('es-CL') : '',
+                r.nombre || '',
+                r.rut || '',
+                r.total || '',
+                r.nivel || '',
+                r.atencional || '',
+                r.motora || '',
+                r.noPlanificada || ''
+            ]);
+
+            let csv = '\uFEFF'; // BOM for Excel
+            csv += headers.join(';') + '\n';
+            rows.forEach(row => {
+                csv += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(';') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `resultados_bis11_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
