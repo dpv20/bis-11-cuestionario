@@ -234,6 +234,12 @@
 
         .score-total { text-align: center; padding: 30px; }
 
+        .score-total .score-label {
+            font-size: 1rem;
+            color: #a0a0d0;
+            margin-bottom: 8px;
+        }
+
         .score-total .score-number {
             font-size: 4rem;
             font-weight: 700;
@@ -322,6 +328,39 @@
         .sending-status.success { color: #2ecc71; }
         .sending-status.error { color: #e74c3c; }
 
+        .view-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 0;
+        }
+
+        .view-toggle button {
+            padding: 10px 24px;
+            border: 2px solid rgba(102,126,234,0.4);
+            background: transparent;
+            color: #a0a0d0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .view-toggle button:first-child {
+            border-radius: 10px 0 0 10px;
+            border-right: none;
+        }
+
+        .view-toggle button:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+
+        .view-toggle button.active {
+            background: rgba(102,126,234,0.25);
+            color: #fff;
+            border-color: #667eea;
+        }
+
         @media (max-width: 600px) {
             header h1 { font-size: 1.5rem; }
             .options { grid-template-columns: repeat(2, 1fr); }
@@ -371,7 +410,13 @@
         </div>
 
         <div id="results">
+            <div class="view-toggle">
+                <button id="btnTerapeuta" class="active" onclick="setView('terapeuta')">Vista Terapeuta</button>
+                <button id="btnPersonal" onclick="setView('personal')">Vista Personal</button>
+            </div>
+
             <div class="results-card score-total">
+                <div class="score-label" id="scoreLabel">Puntuacion del paciente</div>
                 <div class="score-number" id="totalScore">0</div>
                 <div class="score-max">de 120 puntos</div>
                 <div class="score-level" id="scoreLevel"></div>
@@ -601,29 +646,11 @@
             document.getElementById('planScore').textContent = `${planTotal} / 44`;
             document.getElementById('planBar').style.width = `${(planTotal / 44) * 100}%`;
 
-            // Interpretation
-            const interp = document.getElementById('interpretationCard');
-            let html = '<h3>Interpretacion</h3><div class="interpretation">';
-            if (total <= 51) {
-                html += `<h4>Impulsividad Baja (30-51 puntos)</h4>
-                    <p>Tu puntuacion sugiere un alto nivel de autocontrol y capacidad de planificacion.
-                    Tiendes a pensar cuidadosamente antes de actuar, mantienes la atencion en las tareas y planificas para el futuro.</p>`;
-            } else if (total <= 71) {
-                html += `<h4>Impulsividad Normal / Moderada (52-71 puntos)</h4>
-                    <p>Tu puntuacion se encuentra dentro del rango tipico. Muestras un equilibrio entre la reflexion y la espontaneidad.
-                    La mayoria de las personas se encuentran en este rango.</p>`;
-            } else {
-                html += `<h4>Impulsividad Alta (72+ puntos)</h4>
-                    <p>Tu puntuacion sugiere una tendencia elevada hacia la impulsividad. Puede manifestarse como dificultad para
-                    concentrarse, actuar sin pensar en las consecuencias, o dificultad para planificar a largo plazo.</p>
-                    <p>Si esto te genera preocupacion, considera consultar con un profesional de salud mental.</p>`;
-            }
-            html += `<h4>Sobre las subescalas</h4>
-                <p><strong>Impulsividad Atencional:</strong> Capacidad de concentrarse y enfocarse. Incluye atencion sostenida e inestabilidad cognitiva.</p>
-                <p><strong>Impulsividad Motora:</strong> Tendencia a actuar sin pensar. Incluye impulsividad motriz y falta de perseverancia.</p>
-                <p><strong>Impulsividad No Planificada:</strong> Falta de prevision. Incluye autocontrol y complejidad cognitiva.</p>
-            </div>`;
-            interp.innerHTML = html;
+            // Store scores globally for view switching
+            window.lastResults = { total, attTotal, motorTotal, planTotal, nombre };
+
+            // Default to therapist view
+            renderInterpretation('terapeuta');
 
             // Send results to backend
             const resultData = {
@@ -639,6 +666,76 @@
             };
 
             sendToBackend(resultData);
+        }
+
+        let currentView = 'terapeuta';
+
+        function setView(view) {
+            currentView = view;
+            document.getElementById('btnTerapeuta').classList.toggle('active', view === 'terapeuta');
+            document.getElementById('btnPersonal').classList.toggle('active', view === 'personal');
+            renderInterpretation(view);
+        }
+
+        function renderInterpretation(view) {
+            const r = window.lastResults;
+            if (!r) return;
+            const { total, attTotal, motorTotal, planTotal, nombre } = r;
+            const isT = view === 'terapeuta';
+            const paciente = nombre || 'el/la paciente';
+
+            // Update score label
+            document.getElementById('scoreLabel').textContent = isT
+                ? `Puntuacion de ${paciente}`
+                : 'Tu puntuacion';
+
+            // Update subscale descriptions
+            const descEls = document.querySelectorAll('.subscale-desc');
+            if (isT) {
+                descEls[0].textContent = 'Mide la capacidad de concentrarse y prestar atencion. Puntuaciones altas indican tendencia a la distraccion y pensamientos intrusivos.';
+                descEls[1].textContent = 'Evalua la tendencia a actuar sin pensar, inquietud fisica y falta de perseverancia.';
+                descEls[2].textContent = 'Mide la falta de planificacion, poca prevision y orientacion excesiva hacia el presente.';
+            } else {
+                descEls[0].textContent = 'Mide tu capacidad de concentrarte y prestar atencion. Puntuaciones altas indican tendencia a distraerte y tener pensamientos intrusivos.';
+                descEls[1].textContent = 'Evalua tu tendencia a actuar sin pensar, inquietud fisica y falta de perseverancia.';
+                descEls[2].textContent = 'Mide tu falta de planificacion, poca prevision y orientacion excesiva hacia el presente.';
+            }
+
+            // Update interpretation text
+            const interp = document.getElementById('interpretationCard');
+            let html = '<h3>Interpretacion</h3><div class="interpretation">';
+
+            if (total <= 51) {
+                html += `<h4>Impulsividad Baja (30-51 puntos)</h4>`;
+                html += isT
+                    ? `<p>La puntuacion de ${paciente} sugiere un alto nivel de autocontrol y capacidad de planificacion. El/la paciente tiende a pensar cuidadosamente antes de actuar, mantiene la atencion en las tareas y planifica para el futuro.</p>`
+                    : `<p>Tu puntuacion sugiere un alto nivel de autocontrol y capacidad de planificacion. Tiendes a pensar cuidadosamente antes de actuar, mantienes la atencion en las tareas y planificas para el futuro.</p>`;
+            } else if (total <= 71) {
+                html += `<h4>Impulsividad Normal / Moderada (52-71 puntos)</h4>`;
+                html += isT
+                    ? `<p>La puntuacion de ${paciente} se encuentra dentro del rango tipico. Muestra un equilibrio entre la reflexion y la espontaneidad. La mayoria de las personas se encuentran en este rango.</p>`
+                    : `<p>Tu puntuacion se encuentra dentro del rango tipico. Muestras un equilibrio entre la reflexion y la espontaneidad. La mayoria de las personas se encuentran en este rango.</p>`;
+            } else {
+                html += `<h4>Impulsividad Alta (72+ puntos)</h4>`;
+                html += isT
+                    ? `<p>La puntuacion de ${paciente} sugiere una tendencia elevada hacia la impulsividad. Puede manifestarse como dificultad para concentrarse, actuar sin pensar en las consecuencias, o dificultad para planificar a largo plazo.</p>
+                       <p>Se recomienda profundizar en la evaluacion clinica y considerar estrategias de intervencion.</p>`
+                    : `<p>Tu puntuacion sugiere una tendencia elevada hacia la impulsividad. Puede manifestarse como dificultad para concentrarse, actuar sin pensar en las consecuencias, o dificultad para planificar a largo plazo.</p>
+                       <p>Si esto te genera preocupacion, considera consultar con un profesional de salud mental.</p>`;
+            }
+
+            html += `<h4>Sobre las subescalas</h4>
+                <p><strong>Impulsividad Atencional:</strong> Capacidad de concentrarse y enfocarse. Incluye atencion sostenida e inestabilidad cognitiva.</p>
+                <p><strong>Impulsividad Motora:</strong> Tendencia a actuar sin pensar. Incluye impulsividad motriz y falta de perseverancia.</p>
+                <p><strong>Impulsividad No Planificada:</strong> Falta de prevision. Incluye autocontrol y complejidad cognitiva.</p>
+            </div>`;
+            interp.innerHTML = html;
+
+            // Update disclaimer
+            const disclaimer = document.querySelector('#results .disclaimer');
+            disclaimer.textContent = isT
+                ? 'Esta herramienta es solo con fines de apoyo clinico. No reemplaza el juicio profesional del evaluador. Los resultados deben interpretarse en el contexto de una evaluacion integral.'
+                : 'Esta herramienta es solo con fines educativos e informativos. No reemplaza una evaluacion profesional. Si tienes preocupaciones sobre tu salud mental, consulta con un profesional.';
         }
 
         function sendToBackend(data) {
